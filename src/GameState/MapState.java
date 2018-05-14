@@ -20,8 +20,10 @@ public class MapState extends GameState {
 	private Player player;
 	private ArrayList<Enemy> enemy;
 	private int score = 0;
-	private int wave = 5;
-	
+	private int enemiesOnScreen =  3;
+	private int maxEnemiesOnScreen = 15;
+	private int level = 1;
+
 	private static int screenOffset = 480;
 
 	public MapState(GameStateManager gsm) {
@@ -49,12 +51,15 @@ public class MapState extends GameState {
 
 		bg1.update();
 		bg2.update();
-		if (clouds.y >= 250) clouds.setPosition(0, -clouds.getHeight() + screenOffset);
+		if (clouds.y >= 250)
+			clouds.setPosition(0, -clouds.getHeight() + screenOffset);
 		clouds.update();
-		if(bg1.y >= screenOffset) bg1.setPosition(0, -bg1.getHeight()*2 + screenOffset);
-		if(bg2.y >= screenOffset) bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
-		
-		if(player.isDead()) {
+		if (bg1.y >= screenOffset)
+			bg1.setPosition(0, -bg1.getHeight() * 2 + screenOffset);
+		if (bg2.y >= screenOffset)
+			bg2.setPosition(0, -bg2.getHeight() * 2 + screenOffset);
+
+		if (player.isDead()) {
 			gsm.setState(2);
 		}
 
@@ -76,39 +81,37 @@ public class MapState extends GameState {
 		bg2.draw(g);
 		clouds.draw(g);
 
-		//Draw player if he is not dead
-		if (!player.isDead()) player.draw(g);
+		// Draw player if he is not dead
+		if (!player.isDead())
+			player.draw(g);
 
-
-		//Draw enemy
+		// Draw enemy
 		for (int i = 0; i < enemy.size(); i++)
-				enemy.get(i).draw(g);
+			enemy.get(i).draw(g);
 
+		// Draw score of how many enemy has been shot
+		g.drawString("Score: " + score, 40, 40);
+		g.drawString("Level: " + level, 40, 60);
+		
 
-		//Draw score of how many enemy has been shot
-		g.drawString("" + score, 40, 40);
-
+		
 	}
-
-
 
 	private void updateEnemy() {
 
-		for (int i = 0; i <enemy.size(); i++) {
+		for (int i = 0; i < enemy.size(); i++) {
 
-			enemy.get(i).update();    //Update enemy
+			enemy.get(i).update(); // Update enemy
 
-			//The enemy will be set to dead if it is not dead
-			//and is off the screen.
-			if ((enemy.get(i).y >= GamePanel.HEIGHT ||
-				enemy.get(i).x >= GamePanel.WIDTH) &&
-				!enemy.get(i).isDead()) {
+			// The enemy will be set to dead if it is not dead
+			// and is off the screen.
+			if ((enemy.get(i).y >= GamePanel.HEIGHT || enemy.get(i).x >= GamePanel.WIDTH) && !enemy.get(i).isDead()) {
 
 				enemy.get(i).setToDead();
 				addNewEnemy();
 			}
 
-			//Remove enemy if dead animation is over.
+			// Remove enemy if dead animation is over.
 			if (enemy.get(i).isAnimationOver()) {
 				enemy.remove(i);
 			}
@@ -116,38 +119,38 @@ public class MapState extends GameState {
 		}
 	}
 
-	private void loadBackground(){
+	private void loadBackground() {
 
-		bg1 	= new Background("Resources/Background/newBG.jpg", 1);
-		bg2 	= new Background("Resources/Background/newBG2.jpg", 1);
-		clouds 	= new Background("Resources/Background/newCloud.png", 1);
+		bg1 = new Background("Resources/Background/newBG.jpg", 1);
+		bg2 = new Background("Resources/Background/newBG2.jpg", 1);
+		clouds = new Background("Resources/Background/newCloud.png", 1);
 
 		bg1.setPosition(0, -bg1.getHeight() + screenOffset);
 		bg1.setVector(0, 3);
-		
-		bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
+
+		bg2.setPosition(0, -bg2.getHeight() * 2 + screenOffset);
 		bg2.setVector(0, 3);
-		
+
 		clouds.setPosition(150, -clouds.getHeight() + screenOffset);
 		clouds.setVector(0, 0.5);
 	}
 
-	private void loadEnemy(){
+	private void loadEnemy() {
 
 		enemy = new ArrayList<>();
 
-		Random random = new Random();     				//To start the enemy in different positions
-		for (int i = 0; i < wave; i++) {
+		Random random = new Random(); // To start the enemy in different positions
+		for (int i = 0; i < enemiesOnScreen; i++) {
 
-			int x = random.nextInt(GamePanel.WIDTH);  //Get a random number between the size of the window
+			int x = random.nextInt(GamePanel.WIDTH); // Get a random number between the size of the window
 
-			Enemy temp = new Enemy(x, -10*i, 1);
+			Enemy temp = new Enemy(x, -10 * i, 1);
 			enemy.add(temp);
-			temp.setDirection((int)player.x,GamePanel.HEIGHT);
+			temp.setDirection((int) player.x, GamePanel.HEIGHT);
 		}
 	}
 
-	private void updateRightMissileCollision(){
+	private void updateRightMissileCollision() {
 
 		ArrayList<Missile> rightMissile = player.getRightMissile();
 
@@ -155,20 +158,25 @@ public class MapState extends GameState {
 
 			for (int j = 0; j < rightMissile.size(); j++) {
 
-				if (rightMissile.get(j).overlaps(enemy.get(i)) && !enemy.get(i).isDead()) {  //If rightMissile over lap enemy
-					                                               							 // set enemy to dead and remove missile
+				if (!enemy.get(i).isDead()) {
 
-					enemy.get(i).setToDead();
-					addNewEnemy();
-					score += 100;
-					rightMissile.remove(j);
+					if (rightMissile.get(j).overlaps(enemy.get(i)) && !enemy.get(i).isDead()) { // If rightMissile over
+																								// lap
+																								// enemy
+																								// set enemy to dead and
+																								// remove missile
 
-					break;
+						enemy.get(i).setToDead();
+						addNewEnemy();
+						score += 100;
+						rightMissile.remove(j);
+
+						break;
+					}
 				}
 
-				//Remove missiles that are off screen
-				if(rightMissile.get(j).x <= 0 ||
-				   rightMissile.get(j).y <= 0){
+				// Remove missiles that are off screen
+				if (rightMissile.get(j).x <= 0 || rightMissile.get(j).y <= 0) {
 
 					rightMissile.remove(j);
 				}
@@ -176,7 +184,7 @@ public class MapState extends GameState {
 		}
 	}
 
-	private void updateLeftMissileCollision(){
+	private void updateLeftMissileCollision() {
 
 		ArrayList<Missile> leftMissile = player.getLeftMissile();
 
@@ -184,20 +192,22 @@ public class MapState extends GameState {
 
 			for (int j = 0; j < leftMissile.size(); j++) {
 
-				if (leftMissile.get(j).overlaps(enemy.get(i))) {  //If leftMissile over lap enemy
-					                                              // set enemy to dead and remove missile
+				if (!enemy.get(i).isDead()) {
 
-					enemy.get(i).setToDead();
-					addNewEnemy();
-					score += 100;
-					leftMissile.remove(j);
+					if (leftMissile.get(j).overlaps(enemy.get(i))) { // If leftMissile over lap enemy
+																		// set enemy to dead and remove missile
 
-					break;
+						enemy.get(i).setToDead();
+						addNewEnemy();
+						score += 100;
+						leftMissile.remove(j);
+
+						break;
+					}
 				}
 
-				//Remove missiles that are off screen
-				if(leftMissile.get(j).x <= 0 ||
-					leftMissile.get(j).y <= 0){
+				// Remove missiles that are off screen
+				if (leftMissile.get(j).x <= 0 || leftMissile.get(j).y <= 0) {
 
 					leftMissile.remove(j);
 				}
@@ -205,29 +215,41 @@ public class MapState extends GameState {
 		}
 	}
 
-	private void updatePlayerCollision(){
+	private void updatePlayerCollision() {
 
 		for (int i = 0; i < enemy.size(); i++) {
 
-			if (enemy.get(i).overlaps(player)) {
+			if (!enemy.get(i).isDead()) {
 
-				enemy.get(i).setToDead();
-				player.setToDead();
-				//gsm.setState(2);
+				if (enemy.get(i).overlaps(player)) {
+
+					enemy.get(i).setToDead();
+					player.setToDead();
+					// gsm.setState(2);
+				}
 			}
 		}
 	}
 
-	private void addNewEnemy(){
-		Random random = new Random();     				//Start enemy in a random x position
+	private void addNewEnemy() {
+		
+		if(score == 1000) level++;
+		if(score == 2000) level++;
+		if(score == 3000) level++;
+		if(score == 4000) level++;
 
-		int x = random.nextInt(GamePanel.WIDTH);  		//Get a random number between the size of the window
+		
 
-		int y = random.nextInt(20)+1;
-		Enemy temp = new Enemy(x, -y, 1);
-		enemy.add(temp);
-		temp.setDirection((int)player.x,(int)GamePanel.HEIGHT);
+			Random random = new Random(); // Start enemy in a random x position
+
+			int x = random.nextInt(GamePanel.WIDTH); // Get a random number between the size of the window
+
+			int y = random.nextInt(20) + 1;
+			Enemy temp = new Enemy(x, -y, 1);
+			enemy.add(temp);
+			temp.setDirection((int) player.x, (int) GamePanel.HEIGHT);
+		
+
 	}
-
 }
 
