@@ -13,13 +13,16 @@ import Main.GamePanel;
 
 public class MapState extends GameState {
 
-	private Background bg;
 	private Background bg1;
+	private Background bg2;
+	private Background clouds;
 
 	private Player player;
 	private ArrayList<Enemy> enemy;
 	private int score = 0;
-	private int wave = 3;
+	private int wave = 5;
+	
+	private static int screenOffset = 480;
 
 	public MapState(GameStateManager gsm) {
 		init();
@@ -43,9 +46,12 @@ public class MapState extends GameState {
 		updateRightMissileCollision();
 		updateLeftMissileCollision();
 
-		bg.update();
-		if (bg1.y >= 250) bg1.setPosition(0, -1500);
-					bg1.update();
+		bg1.update();
+		bg2.update();
+		if (clouds.y >= 250) clouds.setPosition(0, -1500);
+		clouds.update();
+		if(bg1.y >= screenOffset) bg1.setPosition(0, -2554);
+		if(bg2.y >= screenOffset) bg2.setPosition(0, -2554);
 
 	}
 
@@ -61,8 +67,9 @@ public class MapState extends GameState {
 	@Override
 	public void draw(Graphics g) {
 
-		bg.draw(g);
 		bg1.draw(g);
+		bg2.draw(g);
+		clouds.draw(g);
 
 		//Draw player if he is not dead
 		if (!player.isDead()) player.draw(g);
@@ -106,13 +113,18 @@ public class MapState extends GameState {
 
 	private void loadBackground(){
 
-		bg = new Background("Resources/Background/newBG.jpg", 1);
-		bg1 = new Background("Resources/Background/newCloud.png", 1);
+		bg1 	= new Background("Resources/Background/newBG.jpg", 1);
+		bg2 	= new Background("Resources/Background/newBG2.jpg", 1);
+		clouds 	= new Background("Resources/Background/newCloud.png", 1);
 
-		bg.setPosition(0, -1000);
-		bg.setVector(0, 0.15);
-		bg1.setPosition(150, -1377);
-		bg1.setVector(0, 0.5);
+		bg1.setPosition(0, -1517 + screenOffset);
+		bg1.setVector(0, 3);
+		
+		bg2.setPosition(0, -3034 + screenOffset);
+		bg2.setVector(0, 3);
+		
+		clouds.setPosition(150, -1377);
+		clouds.setVector(0, 0.5);
 	}
 
 	private void loadEnemy(){
