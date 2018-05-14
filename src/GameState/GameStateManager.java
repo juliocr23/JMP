@@ -4,31 +4,50 @@ import java.awt.*;
 
 public class GameStateManager {
 
-	private GameState state;
-	public static GameState menu;
-	public static GameState map;
+	private GameState[] gameStates;
+	private int currentState;
+	
+	public static final int MENUSTATE = 0;
+	public static final int MAP_STATE = 1;
 
 	public GameStateManager() {
-
-		menu = new MenuState(this);
-		map  = new MapState(this);
-		state = menu;
+		
+		gameStates = new GameState[4];
+		
+		currentState = MENUSTATE;
+		loadState(currentState);
+		
 	}
 
-	public void setState(GameState other) {
-		state = other;
+	private void loadState(int state) {
+		if(state == MENUSTATE)
+			gameStates[state] = new MenuState(this);
+
+		if(state == MAP_STATE)
+			gameStates[state] = new MapState(this);
+	}
+	
+	private void unloadState(int state) {
+		gameStates[state] = null;
+	}
+	
+	public void setState(int state) {
+		unloadState(currentState);
+		currentState = state;
+		loadState(currentState);
+
 	}
 
 	public void processInput(){
-		state.processInput();
+		gameStates[currentState].processInput();
 	}
 
 	public void update() {
-		state.update();
+		gameStates[currentState].update();
 	}
 
 	public void draw(Graphics g) {
-			state.draw(g);
+		gameStates[currentState].draw(g);
 	}
 
 }

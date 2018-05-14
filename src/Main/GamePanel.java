@@ -1,5 +1,6 @@
 package Main;
 import GameState.GameStateManager;
+import GameState.MenuState;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
@@ -29,6 +30,7 @@ public class GamePanel extends JFrame implements Runnable {
 
 	// game state manager
 	private GameStateManager gsm;
+	public static MenuState menu;
 
 	public void start() {
 
@@ -56,6 +58,7 @@ public class GamePanel extends JFrame implements Runnable {
 		canvas.requestFocus();
 
 		gsm = new GameStateManager();
+		menu = new MenuState(gsm);
 
 		thread = new Thread(this);
 		thread.start();
