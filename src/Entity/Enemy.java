@@ -128,4 +128,8 @@ public class Enemy extends Rectangle{
 		x += 2 * Math.cos( angle );
 		y += 2 * Math.sin( angle );
 	}
+	public void setY(int y) {
+		
+		this.y = y;
+	}
 }
