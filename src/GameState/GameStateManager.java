@@ -9,6 +9,7 @@ public class GameStateManager {
 	
 	public static final int MENUSTATE = 0;
 	public static final int MAP_STATE = 1;
+	public static final int GAME_OVER_STATE = 2;
 
 	public GameStateManager() {
 		
@@ -25,6 +26,9 @@ public class GameStateManager {
 
 		if(state == MAP_STATE)
 			gameStates[state] = new MapState(this);
+		
+		if(state == GAME_OVER_STATE)
+			gameStates[state] = new GameOverState(this);
 	}
 	
 	private void unloadState(int state) {

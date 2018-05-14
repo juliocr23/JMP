@@ -25,6 +25,7 @@ public class MapState extends GameState {
 	private static int screenOffset = 480;
 
 	public MapState(GameStateManager gsm) {
+		this.gsm = gsm;
 		init();
 	}
 
@@ -48,10 +49,14 @@ public class MapState extends GameState {
 
 		bg1.update();
 		bg2.update();
-		if (clouds.y >= 250) clouds.setPosition(0, -1500);
+		if (clouds.y >= 250) clouds.setPosition(0, -clouds.getHeight() + screenOffset);
 		clouds.update();
-		if(bg1.y >= screenOffset) bg1.setPosition(0, -2554);
-		if(bg2.y >= screenOffset) bg2.setPosition(0, -2554);
+		if(bg1.y >= screenOffset) bg1.setPosition(0, -bg1.getHeight()*2 + screenOffset);
+		if(bg2.y >= screenOffset) bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
+		
+		if(player.isDead()) {
+			gsm.setState(2);
+		}
 
 	}
 
@@ -117,13 +122,13 @@ public class MapState extends GameState {
 		bg2 	= new Background("Resources/Background/newBG2.jpg", 1);
 		clouds 	= new Background("Resources/Background/newCloud.png", 1);
 
-		bg1.setPosition(0, -1517 + screenOffset);
+		bg1.setPosition(0, -bg1.getHeight() + screenOffset);
 		bg1.setVector(0, 3);
 		
-		bg2.setPosition(0, -3034 + screenOffset);
+		bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
 		bg2.setVector(0, 3);
 		
-		clouds.setPosition(150, -1377);
+		clouds.setPosition(150, -clouds.getHeight() + screenOffset);
 		clouds.setVector(0, 0.5);
 	}
 
@@ -208,6 +213,7 @@ public class MapState extends GameState {
 
 				enemy.get(i).setToDead();
 				player.setToDead();
+				//gsm.setState(2);
 			}
 		}
 	}

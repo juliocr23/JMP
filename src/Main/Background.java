@@ -54,4 +54,19 @@ public class Background {
 	public void draw(Graphics g, int w, int h){
 		g.drawImage(image, (int)x, (int)y,w,h, null);
 	}
+	
+	public int getWidth() {
+		if(image.getWidth() != -1)
+			return image.getWidth();
+		else
+			return -1;
+	}
+	
+	public int getHeight() {
+		if(image.getHeight() != -1)
+			return image.getHeight();
+		else
+			return -1;
+	}
+	
 }
