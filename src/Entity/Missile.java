@@ -12,11 +12,13 @@ public class Missile extends Rectangle {
 
     private double velocity = 2;
     private double acceleration = 0.02;
+    private boolean flag;                  //To determine whether to shoot down or up
 
-    public Missile(double x, double y){
+    public Missile(double x, double y,boolean f){
     	
        super(x,y,0,0);
 
+       flag = f;
         try {
             missile = ImageIO.read(new File("Resources/Background/Missiles.png"));
 
@@ -36,7 +38,10 @@ public class Missile extends Rectangle {
         if(velocity <= 4)
             velocity += acceleration;
 
-        y -= velocity;
+        if(flag)
+        	y -= velocity;
+        else
+        	y+= velocity;
     }
 
     public void moveLeftBy(int dx){
