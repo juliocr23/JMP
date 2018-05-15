@@ -1,5 +1,7 @@
 package GameState;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 
 import java.awt.event.KeyEvent;
@@ -10,6 +12,7 @@ import Main.Background;
 import Entity.Boss;
 import Entity.Enemy;
 import Entity.Player;
+import Entity.SubBoss;
 import Main.GamePanel;
 
 public class MapState extends GameState {
@@ -21,10 +24,20 @@ public class MapState extends GameState {
 	private Player player;
 	private ArrayList<Enemy> enemy;
 	private Boss boss;
+	
 	private int score = 0;
-	private int wave = 5;
+	private int wave = 3;
 	private boolean finalStage = false;
 	private int level = 1;
+	private SubBoss subBoss1;
+	private SubBoss subBoss2;
+	private SubBoss subBoss3;
+	
+	private String[] ship = {
+			"alien1.png",
+			"RD2N.png",
+			"att2.png"
+	};
 
 	private static int screenOffset = 480;
 
@@ -38,6 +51,8 @@ public class MapState extends GameState {
 
 		player = new Player(GamePanel.WIDTH / 2 - 10, 300);
 		boss = new Boss(GamePanel.WIDTH/2,40,3);
+		subBoss1 = new SubBoss(40,40,3,"greenship1.png");
+		subBoss2 = new SubBoss(GamePanel.WIDTH/2-50,40,3,"greenship2.png");
 		loadBackground();
 		loadEnemy();
 	}
@@ -54,13 +69,27 @@ public class MapState extends GameState {
 				player.setToDead();
 
 			updateBossMissiles();
-		}else {
-
-			//if(boss.isDead())
-			//Go to completed gameState
-
-			updateEnemy();
 		}
+		
+		
+		if(score >= 3000) {                        //Level 1 sub boss
+			subBoss1.update(player.x, player.y);
+			
+			if(subBoss1.overlaps(player))
+				player.setToDead();
+		}
+		
+		if(score >= 6000) {
+			subBoss2.update(player.x, player.y);  //Level 2 sub boss
+			
+			if(subBoss2.overlaps(player))
+				player.setToDead();
+		}
+		//if(boss.isDead())
+		//Go to completed gameState
+
+		updateEnemy();
+		
 		
 		updatePlayerCollision();
 		updateRightMissileCollision();
@@ -95,16 +124,28 @@ public class MapState extends GameState {
 		bg2.draw(g);
 		clouds.draw(g);
 
-		if(finalStage)
+		if(finalStage) {
 			  boss.draw(g);
-		else
-			for (int i = 0; i < enemy.size(); i++)
+		}
+		
+		
+		if(score >= 3000)       //Draw sub boss 1
+			subBoss1.draw(g);
+		
+		if(score >= 6000)      //Draw sub boss 2
+			 subBoss2.draw(g);
+		
+		
+		//else
+		for (int i = 0; i < enemy.size(); i++)
 				enemy.get(i).draw(g);
 
 		//Draw player if he is not dead
 		if (!player.isDead()) player.draw(g);
 
+		g.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
 
+		g.setColor(Color.red);
 		//Draw score of how many enemy has been shot
 		g.drawString("" + score, 40, 40);
 		g.drawString("Level: " + level, 40, 60);
@@ -125,7 +166,9 @@ public class MapState extends GameState {
 				!enemy.get(i).isDead()) {
 
 				enemy.get(i).setToDead();
-				addNewEnemy();
+				
+				if(!finalStage)
+					addNewEnemy();
 			}
 
 			//Remove enemy if dead animation is over.
@@ -161,7 +204,7 @@ public class MapState extends GameState {
 
 			int x = random.nextInt(GamePanel.WIDTH);   //Get a random number between the size of the window
 
-			Enemy temp = new Enemy(x, -10*i, 1);
+			Enemy temp = new Enemy(x, -10*i, 1,ship[random.nextInt(3)]);
 			enemy.add(temp);
 			temp.setDirection((int)player.x,GamePanel.HEIGHT);
 		}
@@ -179,7 +222,10 @@ public class MapState extends GameState {
 				if (rightMissile.get(j).overlaps(enemy.get(i)) && !enemy.get(i).isDead()) {  //If rightMissile over lap enemy
 					                                               							 // set enemy to dead and remove missile
 					enemy.get(i).setToDead();
-					addNewEnemy();
+					
+					if(!finalStage)
+						addNewEnemy();
+					
 					score += 100;
 					rightMissile.remove(j);
 
@@ -214,8 +260,6 @@ public class MapState extends GameState {
 			}
 		}
 		
-		
-		
 	}
 	
 	
@@ -233,7 +277,10 @@ public class MapState extends GameState {
 					                                              // set enemy to dead and remove missile
 
 					enemy.get(i).setToDead();
-					addNewEnemy();
+					
+					if(!finalStage)
+						addNewEnemy();
+					
 					score += 100;
 					leftMissile.remove(j);
 
@@ -246,6 +293,26 @@ public class MapState extends GameState {
 
 					leftMissile.remove(j);
 				}
+			}
+		}
+		
+
+		//check collision with boss
+		for (int j = 0; j < leftMissile.size(); j++) {
+
+			if (leftMissile.get(j).overlaps(boss)){  //If leftMissile over lap enemy
+				                                     // set enemy to dead and remove missile
+				score += 100;
+				leftMissile.remove(j);
+				boss.addHit();
+				break;
+			}
+
+			//Remove missiles that are off screen
+			if(leftMissile.get(j).x <= 0 ||
+			   leftMissile.get(j).y <= 0){
+
+				leftMissile.remove(j);
 			}
 		}
 	}
@@ -313,27 +380,19 @@ public class MapState extends GameState {
 			wave += 2;
 		}
 
-		/*if(score == 3000) {
-			level++;
-			wave += 2;
-		}*/
-		else if(score == 9000) {
-			level++;
-			wave += 2;
-		}
-
-		else if(score == 12000) finalStage = true;
+		if(score == 9000) 
+			finalStage = true;
 
 
 		Random random = new Random(); // Start enemy in a random x position
 
 		int x = random.nextInt(GamePanel.WIDTH); // Get a random number between the size of the window
-
 		int y = random.nextInt(20) + 1;
-		Enemy temp = new Enemy(x, -y, 1);
+		
+		
+		Enemy temp = new Enemy(x, -y, 1,ship[random.nextInt(3)]);
 		enemy.add(temp);
 		temp.setDirection((int) player.x, (int) GamePanel.HEIGHT);
-
 
 	}
 
