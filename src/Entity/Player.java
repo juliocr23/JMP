@@ -74,8 +74,8 @@ public class Player extends Rectangle {
 
 
 		if(shoot){
-			rightMissile.add(new Missile(x+5,y-3));
-			leftMissile.add(new Missile(x+width-8,y-3));
+			rightMissile.add(new Missile(x+5,y-3,true));
+			leftMissile.add(new Missile(x+width-8,y-3,true));
 		}
 
 		launchMissile(rightMissile);
