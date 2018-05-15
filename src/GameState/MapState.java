@@ -199,7 +199,7 @@ public class MapState extends GameState {
 		bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
 		bg2.setVector(0, 3);
 		
-		clouds.setPosition(150, -clouds.getHeight() + screenOffset);
+		clouds.setPosition(0, -clouds.getHeight() + screenOffset);
 		clouds.setVector(0, 0.5);
 	}
 
