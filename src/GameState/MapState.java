@@ -31,7 +31,6 @@ public class MapState extends GameState {
 	private int level = 1;
 	private SubBoss subBoss1;
 	private SubBoss subBoss2;
-	private SubBoss subBoss3;
 	
 	private String[] ship = {
 			"alien1.png",
@@ -50,9 +49,12 @@ public class MapState extends GameState {
 	public void init() {
 
 		player = new Player(GamePanel.WIDTH / 2 - 10, 300);
-		boss = new Boss(GamePanel.WIDTH/2,40,3);
-		subBoss1 = new SubBoss(40,40,3,"greenship1.png");
-		subBoss2 = new SubBoss(GamePanel.WIDTH/2-50,40,3,"greenship2.png");
+
+		boss = new Boss(GamePanel.WIDTH/2,40,6);
+		subBoss1 = new SubBoss(40,40,6,"greenship1.png");
+		subBoss2 = new SubBoss(GamePanel.WIDTH/2-50,40,6,"greenship2.png");
+
+		//score = 3000;
 		loadBackground();
 		loadEnemy();
 	}
@@ -62,45 +64,50 @@ public class MapState extends GameState {
 
 		player.update();
 
-		if(finalStage) {
-			boss.update(player.x, player.width);
-
-			if (boss.overlaps(player))
-				player.setToDead();
-
-			updateBossMissiles();
-		}
+		updateBossMissiles();
 		
-		
-		if(score >= 3000) {                        //Level 1 sub boss
-			subBoss1.update(player.x, player.y);
+		if(score >= 3000) {                                   //Level 1 sub boss
+			subBoss1.update(player.x, player.width);
 			
 			if(subBoss1.overlaps(player))
 				player.setToDead();
 		}
 		
-		if(score >= 6000) {
-			subBoss2.update(player.x, player.y);  //Level 2 sub boss
+		if(score >= 6000 && subBoss1.isDead()) {
+			subBoss2.update(player.x, player.width+50);  //Level 2 sub boss
 			
 			if(subBoss2.overlaps(player))
 				player.setToDead();
 		}
-		//if(boss.isDead())
-		//Go to completed gameState
+
+		if(score >= 9000 && subBoss1.isDead() && subBoss2.isDead()) {     //Level 3 Boss
+			boss.update(player.x, player.width);
+
+			if (boss.overlaps(player))
+				player.setToDead();
+		}
+
 
 		updateEnemy();
-		
-		
 		updatePlayerCollision();
-		updateRightMissileCollision();
-		updateLeftMissileCollision();
+
+		updatePlayerMissiles(player.getLeftMissile());
+		updatePlayerMissiles(player.getRightMissile());
+
 
 		bg1.update();
 		bg2.update();
-		if (clouds.y >= 250) clouds.setPosition(0, -clouds.getHeight() + screenOffset);
+
+		if (clouds.y >= 250)
+			clouds.setPosition(0, -clouds.getHeight() + screenOffset);
+
 		clouds.update();
-		if(bg1.y >= screenOffset) bg1.setPosition(0, -bg1.getHeight()*2 + screenOffset);
-		if(bg2.y >= screenOffset) bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
+
+		if(bg1.y >= screenOffset)
+			bg1.setPosition(0, -bg1.getHeight()*2 + screenOffset);
+
+		if(bg2.y >= screenOffset)
+			bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
 		
 		if(player.isDead()) {
 			gsm.setState(2);
@@ -124,28 +131,26 @@ public class MapState extends GameState {
 		bg2.draw(g);
 		clouds.draw(g);
 
-		if(finalStage) {
-			  boss.draw(g);
-		}
-		
-		
-		if(score >= 3000)       //Draw sub boss 1
+		if(score >= 3000)                         //Draw sub boss 1
 			subBoss1.draw(g);
-		
-		if(score >= 6000)      //Draw sub boss 2
+
+		if(score >= 6000 && subBoss1.isDead())      //Draw sub boss 2
 			 subBoss2.draw(g);
-		
-		
-		//else
+
+		if(score >= 9000 && subBoss2.isDead() && subBoss1.isDead() )     //Draw final boss
+			boss.draw(g);
+
 		for (int i = 0; i < enemy.size(); i++)
 				enemy.get(i).draw(g);
 
 		//Draw player if he is not dead
 		if (!player.isDead()) player.draw(g);
 
-		g.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
 
+		//Set font and color for level and score
+		g.setFont(new Font(Font.SANS_SERIF,Font.BOLD,16));
 		g.setColor(Color.red);
+
 		//Draw score of how many enemy has been shot
 		g.drawString("" + score, 40, 40);
 		g.drawString("Level: " + level, 40, 60);
@@ -154,6 +159,11 @@ public class MapState extends GameState {
 
 
 	private void updateEnemy() {
+
+		if(enemy.size() == 0){
+		   addNewEnemy();
+		   addNewEnemy();
+		}
 
 		for (int i = 0; i <enemy.size(); i++) {
 
@@ -166,9 +176,7 @@ public class MapState extends GameState {
 				!enemy.get(i).isDead()) {
 
 				enemy.get(i).setToDead();
-				
-				if(!finalStage)
-					addNewEnemy();
+
 			}
 
 			//Remove enemy if dead animation is over.
@@ -195,126 +203,19 @@ public class MapState extends GameState {
 		clouds.setVector(0, 0.5);
 	}
 
-	private void loadEnemy(){
+	private void loadEnemy() {
 
 		enemy = new ArrayList<>();
-
-		Random random = new Random();     				//To start the enemy in different positions
+		Random random = new Random();                    //To start the enemy in different positions
 		for (int i = 0; i < wave; i++) {
 
 			int x = random.nextInt(GamePanel.WIDTH);   //Get a random number between the size of the window
 
-			Enemy temp = new Enemy(x, -10*i, 1,ship[random.nextInt(3)]);
+			Enemy temp = new Enemy(x, -10 * i, 1, ship[random.nextInt(3)]);
 			enemy.add(temp);
-			temp.setDirection((int)player.x,GamePanel.HEIGHT);
+			temp.setDirection((int) player.x, GamePanel.HEIGHT);
 		}
-	}
 
-	private void updateRightMissileCollision(){
-
-		ArrayList<Missile> rightMissile = player.getRightMissile();
-
-		//Check collision with enemies
-		for (int i = 0; i < enemy.size(); i++) {
-
-			for (int j = 0; j < rightMissile.size(); j++) {
-
-				if (rightMissile.get(j).overlaps(enemy.get(i)) && !enemy.get(i).isDead()) {  //If rightMissile over lap enemy
-					                                               							 // set enemy to dead and remove missile
-					enemy.get(i).setToDead();
-					
-					if(!finalStage)
-						addNewEnemy();
-					
-					score += 100;
-					rightMissile.remove(j);
-
-					break;
-				}
-
-				//Remove missiles that are off screen
-				if(rightMissile.get(j).x <= 0 ||
-				   rightMissile.get(j).y <= 0){
-
-					rightMissile.remove(j);
-				}
-			}
-		}
-		
-		//check collision with boss
-		for (int j = 0; j < rightMissile.size(); j++) {
-
-			if (rightMissile.get(j).overlaps(boss)){  //If rightMissile over lap enemy
-				                                     // set enemy to dead and remove missile
-				score += 100;
-				rightMissile.remove(j);
-				boss.addHit();
-				break;
-			}
-
-			//Remove missiles that are off screen
-			if(rightMissile.get(j).x <= 0 ||
-			   rightMissile.get(j).y <= 0){
-
-				rightMissile.remove(j);
-			}
-		}
-		
-	}
-	
-	
-	
-
-	private void updateLeftMissileCollision(){
-
-		ArrayList<Missile> leftMissile = player.getLeftMissile();
-
-		for (int i = 0; i < enemy.size(); i++) {
-
-			for (int j = 0; j < leftMissile.size(); j++) {
-
-				if (leftMissile.get(j).overlaps(enemy.get(i))) {  //If leftMissile over lap enemy
-					                                              // set enemy to dead and remove missile
-
-					enemy.get(i).setToDead();
-					
-					if(!finalStage)
-						addNewEnemy();
-					
-					score += 100;
-					leftMissile.remove(j);
-
-					break;
-				}
-
-				//Remove missiles that are off screen
-				if(leftMissile.get(j).x <= 0 ||
-					leftMissile.get(j).y <= 0){
-
-					leftMissile.remove(j);
-				}
-			}
-		}
-		
-
-		//check collision with boss
-		for (int j = 0; j < leftMissile.size(); j++) {
-
-			if (leftMissile.get(j).overlaps(boss)){  //If leftMissile over lap enemy
-				                                     // set enemy to dead and remove missile
-				score += 100;
-				leftMissile.remove(j);
-				boss.addHit();
-				break;
-			}
-
-			//Remove missiles that are off screen
-			if(leftMissile.get(j).x <= 0 ||
-			   leftMissile.get(j).y <= 0){
-
-				leftMissile.remove(j);
-			}
-		}
 	}
 
 	private void updatePlayerCollision(){
@@ -332,16 +233,6 @@ public class MapState extends GameState {
 		}
 	}
 
-	/*private void addNewEnemy(){
-		Random random = new Random();     				//Start enemy in a random x position
-
-		int x = random.nextInt(GamePanel.WIDTH);  		//Get a random number between the size of the window
-
-		int y = random.nextInt(20)+1;
-		Enemy temp = new Enemy(x, -y, 1);
-		enemy.add(temp);
-		temp.setDirection((int)player.x,(int)GamePanel.HEIGHT);
-	}*/
 	
 	private void updateBossMissiles() {
 		checkBossMissiles(boss.getMissile1());
@@ -349,7 +240,12 @@ public class MapState extends GameState {
 		checkBossMissiles(boss.getMissile3());
 		checkBossMissiles(boss.getMissile4());
 		checkBossMissiles(boss.getMissile5());
+
+		checkBossMissiles(subBoss1.getMissile1());
+		checkBossMissiles(subBoss2.getMissile1());
 	}
+
+
 	
 	private void checkBossMissiles(ArrayList<Missile> m) {
 
@@ -370,7 +266,7 @@ public class MapState extends GameState {
 
 	private void addNewEnemy() {
 
-		System.out.println(score/100);
+
 		if(score == 3000) {
 			level++;
 			wave += 2;
@@ -394,7 +290,73 @@ public class MapState extends GameState {
 		enemy.add(temp);
 		temp.setDirection((int) player.x, (int) GamePanel.HEIGHT);
 
+		/*Enemy temp = army.get(0);
+		temp.setDirection((int) player.x, GamePanel.HEIGHT);
+		enemy.add(temp);
+		army.remove(0);*/
 	}
+
+
+	private void updatePlayerMissiles(ArrayList<Missile> missile){
+
+
+		for (int i = 0; i < enemy.size(); i++) {
+
+			for (int j = 0; j < missile.size(); j++) {
+
+				if (missile.get(j).overlaps(enemy.get(i))) {  //If leftMissile over lap enemy
+															// set enemy to dead and remove missile
+
+					enemy.get(i).setToDead();
+
+					if(!finalStage)
+						addNewEnemy();
+
+					score += 100;
+					missile.remove(j);
+
+					break;
+				}
+			}
+
+		}
+
+		//Remove missiles that are off screen
+		for(int j = 0; j<missile.size(); j++){
+			if(missile.get(j).x <= 0 || missile.get(j).y <= 0)
+				missile.remove(j);
+		}
+
+
+		//check collision with bosses
+		for (int j = 0; j < missile.size(); j++) {
+
+			if (missile.get(j).overlaps(boss)){
+
+				score += 100;
+				missile.remove(j);
+				boss.addHit();
+				break;
+			}
+
+			if( !subBoss1.isDead() && score >= 3000 && missile.get(j).overlaps(subBoss1)) {
+				score += 100;
+				subBoss1.addHit();
+				missile.remove(j);
+				break;
+
+			}
+
+			if(!subBoss2.isDead() && score >= 6000 && missile.get(j).overlaps(subBoss2)) {
+				subBoss2.addHit();
+				score += 100;
+				missile.remove(j);
+				break;
+			}
+		}
+	}
+
+
 
 }
 
