@@ -25,7 +25,7 @@ public class Enemy extends Rectangle{
 	private double x2;
 	private double y2;
 
-	public Enemy(int x, int y, int health) {
+	public Enemy(int x, int y, int health,String file) {
 
 		super(x,y,0,0);
 		
@@ -35,7 +35,7 @@ public class Enemy extends Rectangle{
 		this.health = health;
 		
 		try {
-			enemy = ImageIO.read(new File("Resources/Background/alien1.png"));
+			enemy = ImageIO.read(new File("Resources/Background/"+file));
 			width = (int)(enemy.getWidth()*.2);
 			height = (int)(enemy.getHeight()*.2);
 			
@@ -60,8 +60,8 @@ public class Enemy extends Rectangle{
 
 		if(shoot){
 			counter++;
-			rightMissile[counter] = new Missile(x+5,y-3);
-			leftMissile[counter]  = new Missile(x+width-8,y-3);
+			rightMissile[counter] = new Missile(x+5,y-3,false);
+			leftMissile[counter]  = new Missile(x+width-8,y-3,false);
 		}
 
 		for(int i = 0; i<= counter; i++){
