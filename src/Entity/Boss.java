@@ -51,18 +51,21 @@ public class Boss extends Rectangle{
 	
 	public void update(double px,int pw) {
 		
-		shootTimer += 0.1;
+		shootTimer += 0.06;
 	
 		
-        if (px-pw < x) 
-           x--;
-        else 
-           x++;
+		if(!isDead) {
+	        if (px-pw < x) 
+	           x--;
+	        else 
+	           x++;
+		}else
+			y++;
         
-        if(numberOfHits == totalHits)
+        if(numberOfHits >= totalHits)
         	isDead = true;
         
-        if(shootTimer >= 1) {
+        if(shootTimer >= 1 && !isDead) {
         	
         	
         	Random rand = new Random();
@@ -102,6 +105,7 @@ public class Boss extends Rectangle{
 		
 		if(isDead) {
 			g.drawImage(explosion.nextImage(), (int)x, (int)y, null);
+			drawMissiles(g);
 		}else {
 		    g.drawImage(img, (int)x,(int)y,150,200,null);
 			drawMissiles(g);
@@ -177,6 +181,10 @@ public class Boss extends Rectangle{
 	
 	public boolean isDead() {
 		return explosion.isAnimationOver();
+	}
+	
+	public boolean isExploading() {
+		return isDead;
 	}
 	
 

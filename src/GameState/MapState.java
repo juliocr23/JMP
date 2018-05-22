@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
+
+import Audio.Sound;
 import Entity.Missile;
 import Main.Background;
 import Entity.Boss;
@@ -26,11 +28,14 @@ public class MapState extends GameState {
 	private Boss boss;
 	
 	private int score = 0;
-	private int wave = 3;
+	private int wave = 4;
 	private boolean finalStage = false;
 	private int level = 1;
 	private SubBoss subBoss1;
 	private SubBoss subBoss2;
+	private Sound exploteSound;
+	private Sound bgSound;
+	private boolean enemyDead = false;
 	
 	private String[] ship = {
 			"alien1.png",
@@ -54,9 +59,13 @@ public class MapState extends GameState {
 		subBoss1 = new SubBoss(40,40,6,"greenship1.png");
 		subBoss2 = new SubBoss(GamePanel.WIDTH/2-50,40,6,"greenship2.png");
 
-		//score = 3000;
+		exploteSound = new Sound("Resources/sound/explosion.wav");
+		bgSound      = new Sound("Resources/sound/bg.wav");
+		bgSound.setVolume(-10);
+
 		loadBackground();
 		loadEnemy();
+		bgSound.loop();
 	}
 
 	@Override
@@ -69,22 +78,29 @@ public class MapState extends GameState {
 		if(score >= 3000) {                                   //Level 1 sub boss
 			subBoss1.update(player.x, player.width);
 			
-			if(subBoss1.overlaps(player))
+			if(!subBoss1.isExploading()&& subBoss1.overlaps(player)) {
 				player.setToDead();
+				exploteSound.play();
+			}
 		}
 		
 		if(score >= 6000 && subBoss1.isDead()) {
 			subBoss2.update(player.x, player.width+50);  //Level 2 sub boss
 			
-			if(subBoss2.overlaps(player))
+			if(!subBoss2.isExploading() && subBoss2.overlaps(player)) {
 				player.setToDead();
+				exploteSound.play();
+			}
 		}
 
 		if(score >= 9000 && subBoss1.isDead() && subBoss2.isDead()) {     //Level 3 Boss
 			boss.update(player.x, player.width);
 
-			if (boss.overlaps(player))
+			if (!boss.isExploading() && boss.overlaps(player)) {
 				player.setToDead();
+				exploteSound.play();
+			}
+
 		}
 
 
@@ -110,6 +126,7 @@ public class MapState extends GameState {
 			bg2.setPosition(0, -bg2.getHeight()*2 + screenOffset);
 		
 		if(player.isDead()) {
+			bgSound.stop();
 			gsm.setState(2);
 		}
 
@@ -160,10 +177,11 @@ public class MapState extends GameState {
 
 	private void updateEnemy() {
 
-		if(enemy.size() == 0){
-		   addNewEnemy();
-		   addNewEnemy();
+		if(enemyDead || enemy.size() < wave) {
+			addNewEnemy();
+			enemyDead = false;
 		}
+
 
 		for (int i = 0; i <enemy.size(); i++) {
 
@@ -176,6 +194,8 @@ public class MapState extends GameState {
 				!enemy.get(i).isDead()) {
 
 				enemy.get(i).setToDead();
+				enemyDead = true;
+
 
 			}
 
@@ -226,7 +246,10 @@ public class MapState extends GameState {
 				if (enemy.get(i).overlaps(player)) {
 
 					enemy.get(i).setToDead();
+					enemyDead = true;
+
 					player.setToDead();
+					exploteSound.play();
 					//gsm.setState(2);
 				}
 			}
@@ -253,6 +276,7 @@ public class MapState extends GameState {
 
 			if (m.get(j).overlaps(player)){  
 				player.setToDead();
+				exploteSound.play();
 				break;
 			}
 			
@@ -266,18 +290,25 @@ public class MapState extends GameState {
 
 	private void addNewEnemy() {
 
+		System.out.println("Adding new Enemy");
 
-		if(score == 3000) {
-			level++;
-			wave += 2;
-		}
-		else if(score == 6000) {
-			level++;
-			wave += 2;
+		if(score >= 3000 && score <6000)  {
+			level = 2;
+			wave = 6;
+			System.out.println("Level 2");
 		}
 
-		if(score == 9000) 
-			finalStage = true;
+		if(score >= 6000 && score< 9000) {
+			level = 3;
+			wave = 8;
+			System.out.println("Level 3");
+		}
+
+		if(score >= 9000) {
+			level  = 4;
+			wave = 10;
+			System.out.println("Level 4");
+		}
 
 
 		Random random = new Random(); // Start enemy in a random x position
@@ -290,10 +321,6 @@ public class MapState extends GameState {
 		enemy.add(temp);
 		temp.setDirection((int) player.x, (int) GamePanel.HEIGHT);
 
-		/*Enemy temp = army.get(0);
-		temp.setDirection((int) player.x, GamePanel.HEIGHT);
-		enemy.add(temp);
-		army.remove(0);*/
 	}
 
 
@@ -304,12 +331,14 @@ public class MapState extends GameState {
 
 			for (int j = 0; j < missile.size(); j++) {
 
-				if (missile.get(j).overlaps(enemy.get(i))) {  //If leftMissile over lap enemy
-															// set enemy to dead and remove missile
+				if (!enemy.get(i).isDead() && missile.get(j).overlaps(enemy.get(i))) {  //If leftMissile over lap enemy
+																					    // set enemy to dead and remove missile
 
 					enemy.get(i).setToDead();
+					enemyDead = true;
+					exploteSound.play();
 
-					if(!finalStage)
+					if(score >= 6000 && enemy.size() <wave)
 						addNewEnemy();
 
 					score += 100;
@@ -331,19 +360,12 @@ public class MapState extends GameState {
 		//check collision with bosses
 		for (int j = 0; j < missile.size(); j++) {
 
-			if (missile.get(j).overlaps(boss)){
-
-				score += 100;
-				missile.remove(j);
-				boss.addHit();
-				break;
-			}
 
 			if( !subBoss1.isDead() && score >= 3000 && missile.get(j).overlaps(subBoss1)) {
 				score += 100;
 				subBoss1.addHit();
 				missile.remove(j);
-				break;
+				continue;
 
 			}
 
@@ -351,12 +373,18 @@ public class MapState extends GameState {
 				subBoss2.addHit();
 				score += 100;
 				missile.remove(j);
-				break;
+				continue;
+			}
+
+			if (!boss.isDead() && score >= 9000 && missile.get(j).overlaps(boss)){
+
+				score += 100;
+				boss.addHit();
+				missile.remove(j);
+				System.out.println();
+				continue;
 			}
 		}
 	}
-
-
-
 }
 

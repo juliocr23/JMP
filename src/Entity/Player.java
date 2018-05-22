@@ -1,5 +1,6 @@
 
 package Entity;
+import Audio.Sound;
 import Main.GamePanel;
 import Main.Animation;
 
@@ -18,22 +19,24 @@ public class Player extends Rectangle {
 	private boolean moveUp;
 	private boolean moveDown;
 	private boolean shoot;
-	
 	private boolean isDead;
 
 	private int dx = 4;
 	private int dy = 4;
 	
 	private Animation explosion;
-
 	private ArrayList<Missile> rightMissile;
 	private ArrayList<Missile> leftMissile;
+
+	private Sound shootingSound;
 
 	public Player(int x, int y) {
 
 		super(x,y,0,0);
 		explosion = new Animation("Resources/explosion/explosion_", ".png", 38, 10);
 		isDead = false;
+
+		shootingSound = new Sound("Resources/sound/shooting.wav");
 
 		try {
 			player = ImageIO.read(new File("Resources/Background/player.png"));
@@ -76,6 +79,7 @@ public class Player extends Rectangle {
 		if(shoot){
 			rightMissile.add(new Missile(x+5,y-3,true));
 			leftMissile.add(new Missile(x+width-8,y-3,true));
+			shootingSound.play();
 		}
 
 		launchMissile(rightMissile);

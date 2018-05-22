@@ -47,25 +47,24 @@ public class SubBoss extends Rectangle{
 		shootTimer += 0.01;
 	
 
+		if(!isDead) {
 			if (px - pw < x)
 				x--;
 			else
 				x++;
+		}else
+			y++;
 
-		
-		//updateDirection(px,py);
 
-		System.out.println("Number of hits:  " + numberOfHits);
-        if(numberOfHits >= totalHits) {
+        if(numberOfHits >= totalHits)
 			isDead = true;
-			System.out.println("Is dead");
-		}
         
-        if(shootTimer >= 1) {
-        	missile1.add(new Missile(x+38,y+60,false));
-			shootTimer = 0;
-		}
-
+        if(!isDead) {
+	        if(shootTimer >= 1) {
+	        	missile1.add(new Missile(x+38,y+60,false));
+				shootTimer = 0;
+			}
+        }
         for(int i = 0; i< missile1.size(); i++)
 			missile1.get(i).launch();
 	}
@@ -74,12 +73,16 @@ public class SubBoss extends Rectangle{
 		
 		if(isDead && !explosion.isAnimationOver()) {
 			g.drawImage(explosion.nextImage(), (int)x, (int)y, null);
+			for(int i = 0; i< missile1.size(); i++)
+				missile1.get(i).draw(g);
 		}
 		else if(!isDead) {
 		    g.drawImage(img, (int)x,(int)y,width,height,null);
 		    for(int i = 0; i< missile1.size(); i++)
 				missile1.get(i).draw(g);
 		}
+		
+		   
 	}
 	
 	private void updateDirection(double x2, double y2){

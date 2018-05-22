@@ -2,7 +2,7 @@ package Entity;
 
 import Main.Animation;
 import Main.GamePanel;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
